@@ -1,11 +1,10 @@
-// ignore_for_file: use_build_context_synchronously
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class SettingsPage extends StatefulWidget {
   final int currentGoal;
@@ -24,9 +23,10 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late int selectedGoal;
   final customController = TextEditingController();
-  bool _notificationsEnabled = false;
-  int _reminderIntervalMinutes = 1;
 
+  // -- متغيرات الإشعارات --
+  bool _notificationsEnabled = false;
+  Timer? _timer;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
@@ -38,86 +38,80 @@ class _SettingsPageState extends State<SettingsPage> {
     _initialize();
   }
 
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  // دالة رئيسية لتهيئة كل شيء يتعلق بالإشعارات
   Future<void> _initialize() async {
     await _loadPreferences();
-    await _requestNotificationPermission();
+    await _requestPermission();
     await _initNotifications();
 
     if (_notificationsEnabled) {
-      _schedulePeriodicNotifications();
+      _startReminders();
     }
   }
+
+  // -- دوال الإشعارات --
 
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _notificationsEnabled = prefs.getBool('notifications_enabled') ?? false;
-      _reminderIntervalMinutes = prefs.getInt('interval_minutes') ?? 1;
     });
   }
 
   Future<void> _savePreferences() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('notifications_enabled', _notificationsEnabled);
-    await prefs.setInt('interval_minutes', _reminderIntervalMinutes);
   }
 
-  Future<void> _requestNotificationPermission() async {
-    final status = await Permission.notification.status;
-    if (status.isDenied || status.isPermanentlyDenied) {
-      await Permission.notification.request();
-    }
+  Future<void> _requestPermission() async {
+    await Permission.notification.request();
   }
 
   Future<void> _initNotifications() async {
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    final settings = InitializationSettings(android: androidSettings);
+    const settings = InitializationSettings(android: androidSettings);
     await flutterLocalNotificationsPlugin.initialize(settings);
     tz.initializeTimeZones();
   }
 
-  void _schedulePeriodicNotifications() async {
-    await flutterLocalNotificationsPlugin.cancelAll();
-    final now = tz.TZDateTime.now(tz.local);
-    final firstNotificationTime = now.add(Duration(minutes: _reminderIntervalMinutes));
-
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      0,
-      '💧 Reminder!',
-      'Time to drink water every $_reminderIntervalMinutes minute(s).',
-      firstNotificationTime,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'water_channel_id',
-          'Water Reminders',
-          channelDescription: 'Reminders to drink water regularly',
-          importance: Importance.max,
-          priority: Priority.high,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-      UILocalNotificationDateInterpretation.absoluteTime,
+  Future<void> _showNotification() async {
+    const androidDetails = AndroidNotificationDetails(
+      'water_reminder_channel_5sec',
+      'Water Reminders (5s)',
+      channelDescription: 'Reminder to drink water every 5 seconds.',
+      importance: Importance.max,
+      priority: Priority.high,
     );
-  }
+    const notificationDetails = NotificationDetails(android: androidDetails);
 
-  Future<void> showTestNotification() async {
     await flutterLocalNotificationsPlugin.show(
-      99,
-      '🔔 Test Notification ($_reminderIntervalMinutes min)',
-      'This is how your reminder will look.',
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'water_test_channel_id',
-          'Test Notifications',
-          channelDescription: 'Test reminder notification',
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-      ),
+      0,
+      '💧 اشرب ماء!',
+      'مرت 5 ثوانٍ، حان وقت شرب الماء.',
+      notificationDetails,
     );
   }
 
+  void _startReminders() {
+    _timer?.cancel();
+    if (_notificationsEnabled) {
+      _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+        _showNotification();
+      });
+    }
+  }
+
+  void _stopReminders() {
+    _timer?.cancel();
+  }
+
+  // -- دوال صفحة الإعدادات --
   void updateGoal(int value) {
     setState(() {
       selectedGoal = value;
@@ -132,13 +126,41 @@ class _SettingsPageState extends State<SettingsPage> {
       updateGoal(custom);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Goal Updated to $custom ml"),
+          content: Text("تم تحديث الهدف إلى $custom مل"),
           backgroundColor: Colors.blue.shade700,
         ),
       );
     }
   }
 
+  // ✅ تم إرجاع هذه الدالة إلى مكانها الصحيح
+  Widget _quickGoalButton(String label, int value) {
+    return GestureDetector(
+      onTap: () => updateGoal(value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+        decoration: BoxDecoration(
+          color: selectedGoal == value ? Colors.blue : Colors.grey[200],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text(label,
+                style: TextStyle(
+                    fontSize: 16,
+                    color: selectedGoal == value ? Colors.white : Colors.black)),
+            Text("$value ml",
+                style: TextStyle(
+                    fontSize: 12,
+                    color:
+                    selectedGoal == value ? Colors.white70 : Colors.grey[700])),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // بطاقة التذكيرات
   Widget reminderCard() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -167,45 +189,28 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 12),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text("Enable Notifications", style: TextStyle(fontSize: 16)),
+            title: const Text("Enable Reminders (Every 5 Sec)", style: TextStyle(fontSize: 16)),
             value: _notificationsEnabled,
-            onChanged: (val) async {
+            onChanged: (bool value) {
               setState(() {
-                _notificationsEnabled = val;
+                _notificationsEnabled = value;
               });
-              await _savePreferences();
+              _savePreferences();
+
               if (_notificationsEnabled) {
-                _schedulePeriodicNotifications();
+                _startReminders();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Reminders enabled every 5 seconds.")),
+                );
               } else {
-                await flutterLocalNotificationsPlugin.cancelAll();
+                _stopReminders();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Reminders disabled.")),
+                );
               }
             },
             activeColor: Colors.blue,
           ),
-          if (_notificationsEnabled) ...[
-            const SizedBox(height: 10),
-            Text("Reminder Interval (in minutes)",
-                style: TextStyle(fontSize: 16, color: Colors.grey[700])),
-            const SizedBox(height: 8),
-            DropdownButton<int>(
-              value: _reminderIntervalMinutes,
-              items: [1, 2, 3, 5].map((int minutes) {
-                return DropdownMenuItem<int>(
-                  value: minutes,
-                  child: Text("Every $minutes minute${minutes > 1 ? 's' : ''}"),
-                );
-              }).toList(),
-              onChanged: (int? newVal) async {
-                if (newVal != null) {
-                  setState(() {
-                    _reminderIntervalMinutes = newVal;
-                  });
-                  await _savePreferences();
-                  _schedulePeriodicNotifications();
-                }
-              },
-            ),
-          ],
         ],
       ),
     );
@@ -227,6 +232,7 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ✅ تم إرجاع كل الويدجتس الخاصة بالهدف إلى مكانها الصحيح
             const Text("Current Daily Goal", style: TextStyle(fontSize: 18)),
             const SizedBox(height: 10),
             Card(
@@ -286,44 +292,6 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 30),
             reminderCard(),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: showTestNotification,
-              icon: const Icon(Icons.notifications),
-              label: const Text("Test Notification"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade100,
-                foregroundColor: Colors.blue.shade900,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _quickGoalButton(String label, int value) {
-    return GestureDetector(
-      onTap: () => updateGoal(value),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-        decoration: BoxDecoration(
-          color: selectedGoal == value ? Colors.blue : Colors.grey[200],
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Text(label,
-                style: TextStyle(
-                    fontSize: 16,
-                    color: selectedGoal == value ? Colors.white : Colors.black)),
-            Text("$value ml",
-                style: TextStyle(
-                    fontSize: 12,
-                    color:
-                    selectedGoal == value ? Colors.white : Colors.grey[700])),
           ],
         ),
       ),
