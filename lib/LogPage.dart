@@ -6,13 +6,13 @@ class LogPage extends StatelessWidget {
   final List<DailyWater> dailyLogs;
   final Function(int dailyIndex, int entryIndex) onDeleteEntry;
   final VoidCallback onClearAll;
-  final int goal; // ✅ إضافة متغير الهدف
+  final int goal; // هذا المتغير لم نعد نعتمد عليه للعرض
 
   const LogPage({
     required this.dailyLogs,
     required this.onDeleteEntry,
     required this.onClearAll,
-    required this.goal, // ✅ في الكونستركتر
+    required this.goal,
   });
 
   bool _isSameDay(DateTime a, DateTime b) {
@@ -76,25 +76,36 @@ class LogPage extends StatelessWidget {
           itemBuilder: (context, dayIndex) {
             final day = dailyLogs[dayIndex];
             int dailyTotal = day.entries.fold(0, (sum, entry) => sum + entry.amount);
+
+            // **هنا التعديل الأهم: نستخدم الهدف الخاص باليوم نفسه**
+            int goalForThisDay = day.goalForThatDay;
+
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: ExpansionTile(
+                // جعل سجل اليوم مفتوحًا تلقائيًا
+                initiallyExpanded: _isSameDay(day.date, DateTime.now()),
                 title: Row(
                   children: [
                     Expanded(
                       child: Text(
-                        DateFormat('EEEE, MMM d, yyyy').format(day.date),
+                        // عرض كلمة "Today" لليوم الحالي
+                        _isSameDay(day.date, DateTime.now())
+                            ? "Today"
+                            : DateFormat('EEEE, MMM d').format(day.date),
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                     ),
-                    if (dailyTotal >= goal)
+                    // **تعديل هنا: المقارنة مع الهدف الخاص باليوم**
+                    if (dailyTotal >= goalForThisDay)
                       const Icon(Icons.check_circle, color: Colors.green),
                   ],
                 ),
                 subtitle: Text(
-                  "$dailyTotal ml / $goal ml",
-                  style: const TextStyle(color: Colors.blue),
+                  // **تعديل هنا: عرض الهدف الخاص باليوم**
+                  "$dailyTotal ml / $goalForThisDay ml",
+                  style: TextStyle(color: dailyTotal >= goalForThisDay ? Colors.green : Colors.blue),
                 ),
                 children: day.entries.isEmpty
                     ? [
