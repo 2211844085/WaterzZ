@@ -14,7 +14,7 @@ class LogPage extends StatelessWidget {
     required this.onClearAll,
     required this.goal, // ✅ في الكونستركتر
   });
-
+     
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
