@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'main.dart';
-
 class HomePage extends StatelessWidget {
   final int currentWater;
   final int goal;
