@@ -133,11 +133,12 @@ class _MainScreenState extends State<MainScreen> {
       onAdd: addWater,
       onGoalChange: onGoalChange,
     ),
-    LogPage(
-      dailyLogs: dailyLogs,
-      onDeleteEntry: deleteEntry,
-      onClearAll: clearAll,
-    ),
+  LogPage(
+  dailyLogs: dailyLogs,
+  onDeleteEntry: deleteEntry,
+  onClearAll: clearAll,
+  goal: goal, // اضف هذا
+  ),
     SettingsPage(
       currentGoal: goal,
       onGoalChange: onGoalChange,

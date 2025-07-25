@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'main.dart';
 
 class LogPage extends StatelessWidget {
   final List<DailyWater> dailyLogs;
   final Function(int dailyIndex, int entryIndex) onDeleteEntry;
   final VoidCallback onClearAll;
+  final int goal; // ✅ إضافة متغير الهدف
 
   const LogPage({
     required this.dailyLogs,
     required this.onDeleteEntry,
     required this.onClearAll,
+    required this.goal, // ✅ في الكونستركتر
   });
 
   bool _isSameDay(DateTime a, DateTime b) {
@@ -21,36 +22,32 @@ class LogPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF2F7FD),
+      backgroundColor: const Color(0xFFF2F7FD),
       appBar: AppBar(
-        title: Text("WateRzZ Log"),
+        title: const Text("WateRzZ Log"),
         centerTitle: true,
-        backgroundColor: Color(0xFF1976D2),
+        backgroundColor: const Color(0xFF1976D2),
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           if (dailyLogs.any((day) => day.entries.isNotEmpty))
             IconButton(
-              icon: Icon(Icons.delete_sweep),
+              icon: const Icon(Icons.delete_sweep),
               tooltip: "Clear All",
               onPressed: () {
                 showDialog(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: Text("Clear All Logs"),
-                    content:
-                    Text("Are you sure you want to clear all water logs?"),
+                    title: const Text("Clear All Logs"),
+                    content: const Text("Are you sure you want to clear all water logs?"),
                     actions: [
-                      TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text("Cancel")),
+                      TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
                           onClearAll();
                         },
-                        child: Text("Clear All",
-                            style: TextStyle(color: Colors.red)),
+                        child: const Text("Clear All", style: TextStyle(color: Colors.red)),
                       ),
                     ],
                   ),
@@ -59,20 +56,16 @@ class LogPage extends StatelessWidget {
             ),
         ],
       ),
-      body: dailyLogs.isEmpty ||
-          dailyLogs.every((day) => day.entries.isEmpty)
+      body: dailyLogs.isEmpty || dailyLogs.every((day) => day.entries.isEmpty)
           ? Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.water_drop_outlined,
-                size: 50, color: Colors.grey),
+          children: const [
+            Icon(Icons.water_drop_outlined, size: 50, color: Colors.grey),
             SizedBox(height: 10),
-            Text("No water logged yet",
-                style: TextStyle(color: Colors.grey, fontSize: 16)),
+            Text("No water logged yet", style: TextStyle(color: Colors.grey, fontSize: 16)),
             SizedBox(height: 5),
-            Text("Start tracking your water intake from the Home tab",
-                style: TextStyle(color: Colors.grey)),
+            Text("Start tracking your water intake from the Home tab", style: TextStyle(color: Colors.grey)),
           ],
         ),
       )
@@ -82,24 +75,31 @@ class LogPage extends StatelessWidget {
           itemCount: dailyLogs.length,
           itemBuilder: (context, dayIndex) {
             final day = dailyLogs[dayIndex];
-            int dailyTotal =
-            day.entries.fold(0, (sum, entry) => sum + entry.amount);
+            int dailyTotal = day.entries.fold(0, (sum, entry) => sum + entry.amount);
             return Card(
-              margin: EdgeInsets.only(bottom: 16),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              margin: const EdgeInsets.only(bottom: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: ExpansionTile(
-                title: Text(
-                  DateFormat('EEEE, MMM d, yyyy').format(day.date),
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 18),
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        DateFormat('EEEE, MMM d, yyyy').format(day.date),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                    ),
+                    if (dailyTotal >= goal)
+                      const Icon(Icons.check_circle, color: Colors.green),
+                  ],
                 ),
-                subtitle: Text("$dailyTotal ml total",
-                    style: TextStyle(color: Colors.blue)),
+                subtitle: Text(
+                  "$dailyTotal ml / $goal ml",
+                  style: const TextStyle(color: Colors.blue),
+                ),
                 children: day.entries.isEmpty
                     ? [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
                     child: Text(
                       "No entries for this day.",
                       style: TextStyle(color: Colors.grey),
@@ -111,17 +111,13 @@ class LogPage extends StatelessWidget {
                     .entries
                     .map(
                       (entry) => ListTile(
-                    leading: Icon(Icons.water_drop,
-                        color: Colors.blue),
+                    leading: const Icon(Icons.water_drop, color: Colors.blue),
                     title: Text("${entry.value.amount} ml"),
-                    subtitle: Text(DateFormat('hh:mm a')
-                        .format(entry.value.time)),
+                    subtitle: Text(DateFormat('hh:mm a').format(entry.value.time)),
                     trailing: _canDelete(day.date)
                         ? IconButton(
-                      icon: Icon(Icons.delete,
-                          color: Colors.red),
-                      onPressed: () =>
-                          onDeleteEntry(dayIndex, entry.key),
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => onDeleteEntry(dayIndex, entry.key),
                     )
                         : null,
                   ),
