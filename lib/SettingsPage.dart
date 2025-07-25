@@ -80,20 +80,24 @@ class _SettingsPageState extends State<SettingsPage> {
     tz.initializeTimeZones();
   }
 
+
+
   Future<void> _showNotification() async {
-    const androidDetails = AndroidNotificationDetails(
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'water_reminder_channel_5sec',
       'Water Reminders (5s)',
       channelDescription: 'Reminder to drink water every 5 seconds.',
-      importance: Importance.max,
-      priority: Priority.high,
+      importance: Importance.max, // ✅ هذا السطر يجعل الإشعار يظهر أعلى الشاشة
+      priority: Priority.high,   // ✅ وهذا السطر أيضاً
     );
-    const notificationDetails = NotificationDetails(android: androidDetails);
+
+    const NotificationDetails notificationDetails =
+    NotificationDetails(android: androidDetails);
 
     await flutterLocalNotificationsPlugin.show(
-      0,
-      '💧 اشرب ماء!',
-      'مرت 5 ثوانٍ، حان وقت شرب الماء.',
+      0, // id
+      '💧 اشرب ماء!', // title
+      'حان الآن وقت شرب الماء.', // body
       notificationDetails,
     );
   }
