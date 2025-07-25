@@ -14,10 +14,7 @@ class HomePage extends StatelessWidget {
     required this.goal,
     required this.onAdd,
     required this.onGoalChange,
-
   });
-
-
 
   void _showGoalDialog(BuildContext context) {
     final controller = TextEditingController(text: goal.toString());
@@ -48,24 +45,23 @@ class HomePage extends StatelessWidget {
     );
   }
 
-
-
-
-
-
   @override
   Widget build(BuildContext context) {
-    double percent = (currentWater / goal).clamp(0, 1);
+    double percent = 0;
+    if (currentWater >= goal) {
+      percent = 1.0;
+    } else {
+      percent = (currentWater / goal).clamp(0, 1);
+    }
     return Scaffold(
-      backgroundColor: Color(0xFFF2F7FD), // خلفية زرقاء فاتحة
+      backgroundColor: Color(0xFFF2F7FD),
       appBar: AppBar(
         title: Text('WateRzZ'),
         centerTitle: true,
-        backgroundColor: Color(0xFF1976D2), // أزرق ملكي متناسق
+        backgroundColor: Color(0xFF1976D2),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -73,14 +69,18 @@ class HomePage extends StatelessWidget {
             Text("Stay Hydrated", style: TextStyle(color: Colors.black)),
             SizedBox(height: 20),
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               elevation: 4,
               color: Colors.white,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16),
+                padding:
+                const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16),
                 child: Column(
                   children: [
-                    Text("Today's Progress", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text("Today's Progress",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 20),
                     TweenAnimationBuilder<double>(
                       tween: Tween<double>(begin: 0, end: percent),
@@ -98,8 +98,14 @@ class HomePage extends StatelessWidget {
                             Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text("${(value * 100).toInt()}%", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                                Text("$currentWater ml / $goal ml", style: TextStyle(fontSize: 14, color: Colors.grey[700])),
+                                Text("${(value * 100).toInt()}%",
+                                    style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold)),
+                                Text("$currentWater ml / $goal ml",
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[700])),
                               ],
                             ),
                           ],
@@ -114,17 +120,20 @@ class HomePage extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade100,
                         foregroundColor: Colors.blue.shade800,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
-
-
                   ],
                 ),
               ),
             ),
             SizedBox(height: 20),
-            Align(alignment: Alignment.centerLeft, child: Text("Quick Add", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+            Align(
+                alignment: Alignment.centerLeft,
+                child: Text("Quick Add",
+                    style:
+                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
             SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -134,15 +143,15 @@ class HomePage extends StatelessWidget {
                 quickAddButton("1000ml", Icons.water_drop, 1000),
               ],
             ),
-
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => customAmountDialog(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade100, // لون أزرق ناعم
+                backgroundColor: Colors.blue.shade100,
                 foregroundColor: Colors.blue.shade900,
                 minimumSize: Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -156,10 +165,10 @@ class HomePage extends StatelessWidget {
             SizedBox(height: 20),
             Text(
               '💧 "وجعلنا من الماء كل شيء حي"',
-              style: TextStyle(fontSize: 20, fontStyle: FontStyle.normal, color: Colors.black),
+              style: TextStyle(
+                  fontSize: 20, fontStyle: FontStyle.normal, color: Colors.black),
               textAlign: TextAlign.center,
             ),
-
           ],
         ),
       ),
@@ -186,7 +195,6 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
-
 
   void customAmountDialog(BuildContext context) {
     final controller = TextEditingController();
