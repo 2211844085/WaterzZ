@@ -237,27 +237,39 @@ class _SettingsPageState extends State<SettingsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ✅ تم إرجاع كل الويدجتس الخاصة بالهدف إلى مكانها الصحيح
-            const Text("Current Daily Goal", style: TextStyle(fontSize: 18)),
+            const Center(
+              child: Text(
+                "Current Daily Goal",
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
             const SizedBox(height: 10),
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    const Icon(Icons.water_drop, size: 32, color: Colors.blue),
-                    const SizedBox(height: 10),
-                    Text("$selectedGoal ml",
+            Center(
+              child: Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.water_drop, size: 32, color: Colors.blue),
+                      const SizedBox(height: 10),
+                      Text(
+                        "$selectedGoal ml",
                         style: const TextStyle(
-                            fontSize: 24,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold)),
-                    const Text("per day", style: TextStyle(color: Colors.grey)),
-                  ],
+                          fontSize: 24,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text("per day", style: TextStyle(color: Colors.grey)),
+                    ],
+                  ),
                 ),
               ),
             ),
+
             const SizedBox(height: 20),
             const Text("Quick Set Goals", style: TextStyle(fontSize: 18)),
             const SizedBox(height: 10),

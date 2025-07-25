@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'main.dart';
+
 class HomePage extends StatelessWidget {
   final int currentWater;
   final int goal;
@@ -44,6 +45,55 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  void showGoalReachedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        backgroundColor: Colors.white,
+        title: Center(
+          child: Text(
+            '🎉 ألف مبروك!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: Colors.green[700],
+            ),
+          ),
+        ),
+        content: Text(
+          'لقد حققت هدفك اليومي من شرب الماء يا بطل',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.grey[800],
+            height: 1.4,
+          ),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[700],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'تم',
+              style: TextStyle(fontSize: 18, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     double percent = 0;
@@ -68,18 +118,15 @@ class HomePage extends StatelessWidget {
             Text("Stay Hydrated", style: TextStyle(color: Colors.black)),
             SizedBox(height: 20),
             Card(
-              shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               elevation: 4,
               color: Colors.white,
               child: Padding(
-                padding:
-                const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16),
+                padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16),
                 child: Column(
                   children: [
                     Text("Today's Progress",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 20),
                     TweenAnimationBuilder<double>(
                       tween: Tween<double>(begin: 0, end: percent),
@@ -98,13 +145,9 @@ class HomePage extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text("${(value * 100).toInt()}%",
-                                    style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold)),
+                                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                                 Text("$currentWater ml / $goal ml",
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[700])),
+                                    style: TextStyle(fontSize: 14, color: Colors.grey[700])),
                               ],
                             ),
                           ],
@@ -119,8 +162,7 @@ class HomePage extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade100,
                         foregroundColor: Colors.blue.shade800,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ],
@@ -130,16 +172,14 @@ class HomePage extends StatelessWidget {
             SizedBox(height: 20),
             Align(
                 alignment: Alignment.centerLeft,
-                child: Text("Quick Add",
-                    style:
-                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+                child: Text("Quick Add", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
             SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                quickAddButton("250ml", Icons.local_cafe, 250),
-                quickAddButton("500ml", Icons.local_drink, 500),
-                quickAddButton("1000ml", Icons.water_drop, 1000),
+                quickAddButton(context, "250ml", Icons.local_cafe, 250),
+                quickAddButton(context, "500ml", Icons.local_drink, 500),
+                quickAddButton(context, "1000ml", Icons.water_drop, 1000),
               ],
             ),
             SizedBox(height: 20),
@@ -149,8 +189,7 @@ class HomePage extends StatelessWidget {
                 backgroundColor: Colors.blue.shade100,
                 foregroundColor: Colors.blue.shade900,
                 minimumSize: Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -164,8 +203,7 @@ class HomePage extends StatelessWidget {
             SizedBox(height: 20),
             Text(
               '💧 "وجعلنا من الماء كل شيء حي"',
-              style: TextStyle(
-                  fontSize: 20, fontStyle: FontStyle.normal, color: Colors.black),
+              style: TextStyle(fontSize: 20, fontStyle: FontStyle.normal, color: Colors.black),
               textAlign: TextAlign.center,
             ),
           ],
@@ -174,9 +212,16 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget quickAddButton(String label, IconData icon, int amount) {
+  Widget quickAddButton(BuildContext context, String label, IconData icon, int amount) {
     return ElevatedButton(
-      onPressed: () => onAdd(amount),
+      onPressed: () {
+        onAdd(amount);
+
+        final newTotal = currentWater + amount;
+        if (currentWater < goal && newTotal >= goal) {
+          showGoalReachedDialog(context);
+        }
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white,
         foregroundColor: Colors.blue.shade700,
